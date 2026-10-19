@@ -1,13 +1,14 @@
+import os
+import urllib.parse
+import traceback
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
 from database import supabase
 from models import BLOOD_COMPATIBILITY
 from routes import requests as req_routes, donors as donor_routes, team as team_routes, auth as auth_routes
 from routes.auth import is_admin_logged_in
-import urllib.parse
-import os
-import traceback
 
 app = FastAPI(title="Blood Donation Society Nushki")
 
@@ -21,7 +22,7 @@ if not os.path.exists(static_path):
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates = Jinja2Templates(directory=templates_path)
 
-# Register routes
+# Register routers
 app.include_router(auth_routes.router)
 app.include_router(req_routes.router)
 app.include_router(donor_routes.router)
@@ -37,7 +38,7 @@ MOCK_REQUESTS = [
         "contact_number": "03337890123",
         "required_by_time": "Within 2 Hours",
         "notes": "Emergency surgery delivery case",
-        "status": "OPEN"
+        "status": "OPEN",
     }
 ]
 
@@ -45,13 +46,13 @@ MOCK_DONORS = [
     {"full_name": "Muhammad Asif", "blood_group": "B+", "area_nushki": "Station Road", "phone_number": "03331234567", "is_available": True},
     {"full_name": "Farooq Jamaldini", "blood_group": "O-", "area_nushki": "Killi Jamaldini", "phone_number": "03009876543", "is_available": True},
     {"full_name": "Bilal Mengal", "blood_group": "A+", "area_nushki": "Killi Mengal", "phone_number": "03214567890", "is_available": True},
-    {"full_name": "Zubair Ahmed", "blood_group": "B+", "area_nushki": "Bypass Nushki", "phone_number": "03456789012", "is_available": False}
+    {"full_name": "Zubair Ahmed", "blood_group": "B+", "area_nushki": "Bypass Nushki", "phone_number": "03456789012", "is_available": False},
 ]
 
 MOCK_TEAM = [
     {"full_name": "Dr. Tariq Baloch", "role_title": "President", "area": "Civil Hospital Road", "phone_number": "03330001111"},
     {"full_name": "Mir Sanaullah Mengal", "role_title": "General Secretary", "area": "Killi Mengal", "phone_number": "03330002222"},
-    {"full_name": "Engr. Naveed Badini", "role_title": "Emergency Coordinator", "area": "Station Road", "phone_number": "03330003333"}
+    {"full_name": "Engr. Naveed Badini", "role_title": "Emergency Coordinator", "area": "Station Road", "phone_number": "03330003333"},
 ]
 
 @app.get("/")
@@ -79,14 +80,14 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
             else:
                 donors = MOCK_DONORS
 
-        # 3. Fetch Team
+        # 3. Fetch Core Team
         try:
             team_res = supabase.table("society_team").select("*").eq("is_active", True).order("display_order").execute()
             team_members = team_res.data or []
         except Exception:
             team_members = MOCK_TEAM
 
-        # 4. WhatsApp link generation
+        # 4. Generate WhatsApp instant alert links
         for br in blood_requests:
             matched_groups = BLOOD_COMPATIBILITY.get(br.get("blood_group", "O+"), [br.get("blood_group", "O+")])
             matched_donors = [d for d in donors if d.get("blood_group") in matched_groups and d.get("is_available")]
@@ -109,7 +110,7 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
                     "wa_url": f"https://wa.me/{d.get('phone_number')}?text={encoded}"
                 })
 
-        return templates.TemplateResponse("index.html", {
+        context = {
             "request": request,
             "active_tab": tab,
             "selected_group": group,
@@ -118,7 +119,13 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
             "team_members": team_members,
             "is_admin": admin_status,
             "login_error": error
-        })
+        }
+
+        return templates.TemplateResponse(
+            request=request,
+            name="index.html",
+            context=context
+        )
 
     except Exception:
         from fastapi.responses import HTMLResponse
