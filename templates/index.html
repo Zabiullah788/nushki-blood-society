@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blood Donation Society Nushki</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-rose-700 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl">🩸</span>
+        <div>
+          <h1 class="font-bold text-base md:text-xl leading-tight">Blood Donation Society Nushki</h1>
+          <p class="text-xs text-rose-200">DHQ Hospital & Emergency Network</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        {% if is_admin %}
+          <span class="text-xs bg-rose-900 text-white font-bold px-2.5 py-1 rounded">Admin</span>
+          <a href="/auth/logout" class="text-xs bg-white text-rose-700 font-bold px-3 py-1.5 rounded-lg shadow hover:bg-rose-50 transition">Logout</a>
+        {% else %}
+          <a href="/?tab=login" class="text-xs bg-rose-800 text-rose-100 font-semibold px-2.5 py-1.5 rounded-lg hover:text-white transition">Admin</a>
+        {% endif %}
+        <a href="/?tab=signup" class="bg-rose-900 hover:bg-rose-950 text-white text-xs md:text-sm font-semibold px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition">
+          Join as Donor
+        </a>
+        <a href="/?tab=post" class="bg-white text-rose-700 text-xs md:text-sm font-bold px-3 py-1.5 md:px-4 md:py-2 rounded-lg shadow hover:bg-rose-50 transition">
+          + Post Need
+        </a>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-rose-800 text-xs md:text-sm border-t border-rose-600">
+      <div class="max-w-6xl mx-auto px-4 flex space-x-6 overflow-x-auto">
+        <a href="/?tab=requests" class="py-2.5 px-1 font-semibold whitespace-nowrap {% if active_tab == 'requests' %} border-b-2 border-white text-white {% else %} text-rose-200 hover:text-white {% endif %}">
+          Live Requests
+        </a>
+        <a href="/?tab=donors" class="py-2.5 px-1 font-semibold whitespace-nowrap {% if active_tab == 'donors' %} border-b-2 border-white text-white {% else %} text-rose-200 hover:text-white {% endif %}">
+          Donors Directory
+        </a>
+        <a href="/?tab=team" class="py-2.5 px-1 font-semibold whitespace-nowrap {% if active_tab == 'team' %} border-b-2 border-white text-white {% else %} text-rose-200 hover:text-white {% endif %}">
+          Society Core Team
+        </a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Content Container -->
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full">
+
+    <!-- ADMIN LOGIN FORM -->
+    {% if active_tab == 'login' %}
+    <section class="max-w-sm mx-auto bg-white p-6 rounded-xl shadow-sm border mt-6">
+      <h2 class="text-lg font-bold text-slate-800 mb-1">Admin Authentication</h2>
+      <p class="text-xs text-slate-500 mb-4">Enter credentials from .env to manage requests</p>
+
+      {% if login_error %}
+        <div class="bg-rose-50 border border-rose-200 text-rose-700 text-xs p-2.5 rounded-lg mb-3">
+          Invalid username or password.
+        </div>
+      {% endif %}
+
+      <form action="/auth/login" method="post" class="space-y-3 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Username</label>
+          <input type="text" name="username" required class="w-full border rounded-lg p-2 text-sm outline-none focus:ring-1 focus:ring-rose-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+          <input type="password" name="password" required class="w-full border rounded-lg p-2 text-sm outline-none focus:ring-1 focus:ring-rose-500">
+        </div>
+        <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-2 rounded-lg font-semibold text-xs transition">
+          Sign In as Admin
+        </button>
+      </form>
+    </section>
+    {% endif %}
+
+    <!-- 1. LIVE REQUESTS VIEW -->
+    {% if active_tab == 'requests' %}
+    <section class="space-y-4">
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <h2 class="text-lg md:text-2xl font-bold text-slate-800">Active Emergency Appeals</h2>
+          <p class="text-xs md:text-sm text-slate-500">Real-time alerts for DHQ & local clinics</p>
+        </div>
+        <a href="/?tab=post" class="text-xs md:text-sm bg-rose-600 hover:bg-rose-700 text-white font-medium px-3 py-1.5 rounded-lg">
+          Request Blood
+        </a>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {% for br in blood_requests %}
+        <div class="bg-white border rounded-xl p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs font-bold px-2 py-0.5 rounded {% if br.status == 'OPEN' %} bg-rose-100 text-rose-700 {% else %} bg-emerald-100 text-emerald-700 {% endif %}">
+                {{ br.status }}
+              </span>
+              <span class="text-xl font-black text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-lg">
+                {{ br.blood_group }}
+              </span>
+            </div>
+
+            <h3 class="font-bold text-slate-800 text-base md:text-lg">{{ br.patient_name }}</h3>
+            <p class="text-xs md:text-sm text-slate-500 mt-1">📍 {{ br.hospital }}</p>
+            <p class="text-xs md:text-sm text-slate-600 mt-1">Required: <strong>{{ br.units_needed }} Unit(s)</strong> by {{ br.required_by_time }}</p>
+
+            {% if br.notes %}
+              <p class="text-xs text-slate-500 bg-slate-50 p-2 rounded mt-2 border">{{ br.notes }}</p>
+            {% endif %}
+
+            <div class="mt-3 pt-3 border-t">
+              <p class="text-xs font-semibold text-slate-700 mb-1.5">⚡ Matched Donors ({{ br.matched_count }} available):</p>
+              <div class="flex flex-wrap gap-1.5">
+                {% for d in br.dispatches %}
+                  <a href="{{ d.wa_url }}" target="_blank" class="inline-flex items-center text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 rounded hover:bg-emerald-100 font-medium">
+                    💬 Alert {{ d.name }} ({{ d.group }})
+                  </a>
+                {% else %}
+                  <span class="text-[11px] text-slate-400">No matching donors in database.</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t flex justify-between items-center text-xs">
+            <a href="tel:{{ br.contact_number }}" class="font-bold text-slate-700 hover:text-rose-600">
+              📞 {{ br.contact_number }}
+            </a>
+
+            {% if is_admin %}
+            <div class="flex space-x-1.5">
+              {% if br.status == 'OPEN' %}
+              <form action="/requests/{{ br.id }}/fulfill" method="post" class="inline">
+                <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded font-semibold">
+                  Fulfill
+                </button>
+              </form>
+              {% endif %}
+              <form action="/requests/{{ br.id }}/delete" method="post" class="inline" onsubmit="return confirm('Delete this request?');">
+                <button type="submit" class="bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 px-2 py-1 rounded">
+                  ✕
+                </button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="col-span-full text-center py-12 text-slate-400">
+          No active blood appeals currently recorded.
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- 2. DONORS DIRECTORY VIEW -->
+    {% if active_tab == 'donors' %}
+    <section class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-lg md:text-2xl font-bold text-slate-800">Registered Donors</h2>
+          <p class="text-xs md:text-sm text-slate-500">Volunteers available across Nushki</p>
+        </div>
+        
+        <form method="get" action="/" class="flex items-center space-x-2">
+          <input type="hidden" name="tab" value="donors">
+          <select name="group" onchange="this.form.submit()" class="border bg-white text-xs md:text-sm rounded-lg p-2 font-medium">
+            <option value="ALL" {% if selected_group == 'ALL' %}selected{% endif %}>All Groups</option>
+            {% for g in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] %}
+              <option value="{{ g }}" {% if selected_group == g %}selected{% endif %}>{{ g }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+
+      <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {% for donor in donors %}
+        <div class="bg-white border rounded-xl p-3.5 shadow-sm flex justify-between items-center">
+          <div>
+            <div class="flex items-center space-x-1.5">
+              <h4 class="font-bold text-sm md:text-base text-slate-800">{{ donor.full_name }}</h4>
+              <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold {% if donor.is_available %} bg-emerald-100 text-emerald-700 {% else %} bg-slate-100 text-slate-500 {% endif %}">
+                {% if donor.is_available %}Ready{% else %}Cooldown{% endif %}
+              </span>
+            </div>
+            <p class="text-xs text-slate-500">📍 {{ donor.area_nushki }}</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <span class="font-black text-rose-600 text-sm bg-rose-50 px-2 py-1 rounded border border-rose-200">
+              {{ donor.blood_group }}
+            </span>
+            <a href="tel:{{ donor.phone_number }}" class="bg-slate-100 hover:bg-slate-200 p-2 rounded-full text-xs">📞</a>
+          </div>
+        </div>
+        {% else %}
+        <div class="col-span-full text-center py-10 text-slate-400">
+          No donors found for this blood group.
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- 3. SOCIETY CORE TEAM VIEW -->
+    {% if active_tab == 'team' %}
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-lg md:text-2xl font-bold text-slate-800">Society Leadership & Core Team</h2>
+        <p class="text-xs md:text-sm text-slate-500">Representatives across Nushki neighborhoods</p>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {% for tm in team_members %}
+        <div class="bg-white border rounded-xl p-4 shadow-sm flex flex-col justify-between">
+          <div>
+            <span class="text-[10px] font-bold text-rose-600 uppercase bg-rose-50 px-2 py-0.5 rounded">{{ tm.role_title }}</span>
+            <h4 class="font-bold text-slate-800 text-base mt-1">{{ tm.full_name }}</h4>
+            <p class="text-xs text-slate-500">📍 {{ tm.area }}</p>
+          </div>
+          <div class="mt-4 pt-3 border-t flex space-x-2 text-xs">
+            <a href="tel:{{ tm.phone_number }}" class="flex-1 text-center bg-slate-100 hover:bg-slate-200 py-2 rounded-lg font-medium text-slate-700">Call</a>
+            <a href="https://wa.me/{{ tm.phone_number }}" target="_blank" class="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-medium">WhatsApp</a>
+          </div>
+        </div>
+        {% else %}
+        <div class="col-span-full text-center py-10 text-slate-400">
+          No core team members registered yet.
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- 4. DONOR SIGNUP / REGISTRATION VIEW -->
+    {% if active_tab == 'signup' %}
+    <section class="max-w-lg mx-auto bg-white p-5 md:p-6 rounded-xl shadow-sm border mt-4">
+      <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-1">Register as a Blood Donor</h2>
+      <p class="text-xs text-slate-500 mb-4">Your contact will be used to alert you when blood is urgently needed in Nushki.</p>
+
+      <form action="/donors/register" method="post" class="space-y-3 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name</label>
+          <input type="text" name="full_name" required placeholder="e.g. Sanaullah Mengal" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-rose-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Blood Group</label>
+            <select name="blood_group" class="w-full border rounded-lg p-2.5 text-sm bg-white">
+              <option value="A+">A+</option><option value="A-">A-</option>
+              <option value="B+">B+</option><option value="B-">B-</option>
+              <option value="AB+">AB+</option><option value="AB-">AB-</option>
+              <option value="O+">O+</option><option value="O-">O-</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">WhatsApp / Phone</label>
+            <input type="text" name="phone_number" required placeholder="03XXXXXXXXX" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-rose-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Area / Neighborhood in Nushki</label>
+          <select name="area_nushki" class="w-full border rounded-lg p-2.5 text-sm bg-white">
+            <option value="Station Road">Station Road</option>
+            <option value="Killi Mengal">Killi Mengal</option>
+            <option value="Killi Jamaldini">Killi Jamaldini</option>
+            <option value="Civil Hospital Road">Civil Hospital Road</option>
+            <option value="Bypass Nushki">Bypass Nushki</option>
+            <option value="Killi Gharibabad">Killi Gharibabad</option>
+            <option value="Other Area (Nushki)">Other Area (Nushki)</option>
+          </select>
+        </div>
+
+        <div class="flex space-x-2 pt-2">
+          <a href="/?tab=donors" class="w-1/3 text-center border py-2.5 rounded-lg text-slate-600 font-medium text-xs flex items-center justify-center">Cancel</a>
+          <button type="submit" class="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg font-semibold text-xs transition">Register as Donor</button>
+        </div>
+      </form>
+    </section>
+    {% endif %}
+
+    <!-- 5. POST NEED FORM VIEW -->
+    {% if active_tab == 'post' %}
+    <section class="max-w-lg mx-auto bg-white p-5 md:p-6 rounded-xl shadow-sm border mt-4">
+      <h2 class="text-lg md:text-xl font-bold text-slate-800 mb-1">Post Emergency Blood Need</h2>
+      <p class="text-xs text-slate-500 mb-4">Send alerts across Nushki</p>
+
+      <form action="/requests/new" method="post" class="space-y-3 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Patient Name</label>
+          <input type="text" name="patient_name" required placeholder="e.g. Attaullah" class="w-full border rounded-lg p-2.5 text-sm outline-none focus:ring-1 focus:ring-rose-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Blood Group</label>
+            <select name="blood_group" class="w-full border rounded-lg p-2.5 text-sm bg-white">
+              <option value="A+">A+</option><option value="A-">A-</option>
+              <option value="B+">B+</option><option value="B-">B-</option>
+              <option value="AB+">AB+</option><option value="AB-">AB-</option>
+              <option value="O+">O+</option><option value="O-">O-</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Units Needed</label>
+            <input type="number" name="units_needed" value="1" min="1" max="10" required class="w-full border rounded-lg p-2.5 text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Hospital / Clinic</label>
+          <input type="text" name="hospital" value="DHQ Hospital Nushki" required class="w-full border rounded-lg p-2.5 text-sm">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Attendant Phone</label>
+            <input type="text" name="contact_number" placeholder="03XXXXXXXXX" required class="w-full border rounded-lg p-2.5 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Required By</label>
+            <input type="text" name="required_by_time" placeholder="e.g. 9:00 PM" required class="w-full border rounded-lg p-2.5 text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Notes (Optional)</label>
+          <textarea name="notes" rows="2" placeholder="Delivery case, emergency ward..." class="w-full border rounded-lg p-2.5 text-sm"></textarea>
+        </div>
+
+        <div class="flex space-x-2 pt-2">
+          <a href="/?tab=requests" class="w-1/3 text-center border py-2.5 rounded-lg text-slate-600 font-medium text-xs flex items-center justify-center">Cancel</a>
+          <button type="submit" class="w-2/3 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-lg font-semibold text-xs transition">Submit Emergency</button>
+        </div>
+      </form>
+    </section>
+    {% endif %}
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-4 text-center mt-auto">
+    <p>Blood Donation Society Nushki, Balochistan. Social work initiative.</p>
+  </footer>
+
+</body>
+</html>
