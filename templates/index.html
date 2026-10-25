@@ -8,7 +8,7 @@
 </head>
 <body>
 
-  <!-- Glass Header -->
+  <!-- Header -->
   <header class="site-header">
     <div class="header-container">
       <div class="header-top">
@@ -17,7 +17,7 @@
             <img src="/static/logo.png" alt="Logo" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/2966/2966327.png';">
           </div>
           <div>
-            <h1 class="brand-title">Blood Donation Social Walfare Socity Nushki</h1>
+            <h1 class="brand-title">Blood Donation Society Nushki</h1>
             <p class="brand-subtitle"><span class="pulse-dot"></span> DHQ Hospital &amp; Emergency Network</p>
           </div>
         </div>
@@ -110,7 +110,7 @@
               <h4 class="card-title">{{ d.full_name }}</h4>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">📍 {{ d.area_nushki }}</p>
             </div>
-            <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(226, 232, 240, 0.7);">
+            <div style="margin-top: 18px; padding-top: 12px; border-top: 1.5px solid var(--border-subtle);">
               <a href="tel:{{ d.phone_number }}" class="card-urgency" style="text-decoration: none;">📞 {{ d.phone_number }}</a>
             </div>
           </div>
@@ -133,7 +133,7 @@
           <div class="card">
             <div>
               <h3 class="card-title">{{ m.full_name }}</h3>
-              <p style="font-size: 0.85rem; color: var(--primary); font-weight: 800; margin-top: 2px;">{{ m.role_title }}</p>
+              <p style="font-size: 0.85rem; color: var(--crimson); font-weight: 800; margin-top: 2px;">{{ m.role_title }}</p>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">📍 {{ m.area }}</p>
             </div>
             <div style="margin-top: 16px;">
@@ -191,9 +191,9 @@
         </div>
         <div class="form-group">
           <label>Notes</label>
-          <textarea name="notes" rows="2" class="form-textarea" placeholder="Surgery, emergency details..."></textarea>
+          <textarea name="notes" rows="2" class="form-textarea" placeholder="Surgery, accident, emergency details..."></textarea>
         </div>
-        <button type="submit" class="btn-submit">Broadcast Appeal Now</button>
+        <button type="submit" class="btn-submit">Submit Emergency Appeal</button>
       </form>
     </div>
   </div>
@@ -229,7 +229,7 @@
           <label>Area in Nushki *</label>
           <input type="text" name="area_nushki" class="form-input" required placeholder="e.g. Station Road, Killi Mengal">
         </div>
-        <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #0284c7, #0369a1);">Register as Active Donor</button>
+        <button type="submit" class="btn-submit" style="background: var(--sky-btn);">Register as Active Donor</button>
       </form>
     </div>
   </div>
@@ -250,7 +250,7 @@
           <label>Password</label>
           <input type="password" name="password" class="form-input" required>
         </div>
-        <button type="submit" class="btn-submit" style="background: #0f172a;">Sign In</button>
+        <button type="submit" class="btn-submit" style="background: var(--navy-dark);">Sign In</button>
       </form>
     </div>
   </div>

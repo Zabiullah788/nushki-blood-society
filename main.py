@@ -52,7 +52,7 @@ MOCK_TEAM = [
     {"full_name": "Engr. Naveed Badini", "role_title": "Emergency Coordinator", "area": "Station Road", "phone_number": "03330003333"},
 ]
 
-# --- DIRECT FORM SUBMISSION ENDPOINTS ---
+# --- FORM SUBMISSIONS ---
 
 @app.post("/requests", response_class=responses.RedirectResponse)
 @app.post("/requests/", response_class=responses.RedirectResponse)
@@ -66,7 +66,7 @@ def handle_create_request(
     notes: str = Form("")
 ):
     try:
-        supabase.table("blood_requests").insert({
+        res = supabase.table("blood_requests").insert({
             "patient_name": patient_name,
             "blood_group": blood_group,
             "units_needed": units_needed,
@@ -76,8 +76,9 @@ def handle_create_request(
             "notes": notes,
             "status": "OPEN"
         }).execute()
+        print("Insert request success:", res)
     except Exception as e:
-        print("Error creating request in Supabase:", e)
+        print("ERROR saving blood request to Supabase:", repr(e))
 
     return responses.RedirectResponse(url="/?tab=requests", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -91,15 +92,16 @@ def handle_register_donor(
     area_nushki: str = Form(...)
 ):
     try:
-        supabase.table("profiles").insert({
+        res = supabase.table("profiles").insert({
             "full_name": full_name,
             "blood_group": blood_group,
             "phone_number": phone_number,
             "area_nushki": area_nushki,
             "is_available": True
         }).execute()
+        print("Insert donor success:", res)
     except Exception as e:
-        print("Error registering donor in Supabase:", e)
+        print("ERROR saving donor to Supabase:", repr(e))
 
     return responses.RedirectResponse(url="/?tab=donors", status_code=status.HTTP_303_SEE_OTHER)
 
@@ -115,7 +117,8 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
         try:
             req_res = supabase.table("blood_requests").select("*").order("created_at", desc=True).execute()
             blood_requests = req_res.data or []
-        except Exception:
+        except Exception as e:
+            print("Supabase blood_requests fetch error:", repr(e))
             blood_requests = MOCK_REQUESTS
 
         # 2. Fetch Donors
@@ -125,7 +128,8 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
                 donor_query = donor_query.eq("blood_group", group)
             donors_res = donor_query.order("full_name").execute()
             donors = donors_res.data or []
-        except Exception:
+        except Exception as e:
+            print("Supabase donors fetch error:", repr(e))
             if group and group != "ALL":
                 donors = [d for d in MOCK_DONORS if d["blood_group"] == group]
             else:
@@ -135,10 +139,11 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
         try:
             team_res = supabase.table("society_team").select("*").eq("is_active", True).order("display_order").execute()
             team_members = team_res.data or []
-        except Exception:
+        except Exception as e:
+            print("Supabase society_team fetch error:", repr(e))
             team_members = MOCK_TEAM
 
-        # 4. WhatsApp Links
+        # 4. WhatsApp instant alert generation
         for br in blood_requests:
             matched_groups = BLOOD_COMPATIBILITY.get(br.get("blood_group", "O+"), [br.get("blood_group", "O+")])
             matched_donors = [d for d in donors if d.get("blood_group") in matched_groups and d.get("is_available")]
