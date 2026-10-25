@@ -40,7 +40,7 @@ def calculate_donor_eligibility(last_date_str):
     except Exception:
         return True, "Ready"
 
-# --- EMERGENCY ACTIONS: POST, RESOLVE & DELETE ---
+# --- EMERGENCY ACTIONS: POST, RESOLVE (ADMIN) & DELETE (ADMIN) ---
 
 @app.post("/requests", response_class=responses.RedirectResponse)
 @app.post("/requests/", response_class=responses.RedirectResponse)
@@ -54,10 +54,7 @@ def handle_create_request(
     notes: str = Form("")
 ):
     try:
-        # Calculate exact expiry timestamp in UTC
         now_utc = datetime.now(timezone.utc)
-        expires_at = now_utc + timedelta(hours=int(expiry_hours))
-
         supabase.table("blood_requests").insert({
             "patient_name": patient_name.strip(),
             "blood_group": blood_group.strip().replace(" ", "+"),
@@ -76,7 +73,11 @@ def handle_create_request(
 
 
 @app.post("/requests/resolve", response_class=responses.RedirectResponse)
-def handle_resolve_request(request_id: str = Form(...)):
+def handle_resolve_request(request: Request, request_id: str = Form(...)):
+    # Restrict to authenticated admin only
+    if not is_admin_logged_in(request):
+        return responses.RedirectResponse(url="/?tab=requests&error=Admin+access+required", status_code=status.HTTP_303_SEE_OTHER)
+
     try:
         supabase.table("blood_requests").update({"status": "FULFILLED"}).eq("id", request_id).execute()
     except Exception as e:
@@ -85,7 +86,11 @@ def handle_resolve_request(request_id: str = Form(...)):
 
 
 @app.post("/requests/delete", response_class=responses.RedirectResponse)
-def handle_delete_request(request_id: str = Form(...)):
+def handle_delete_request(request: Request, request_id: str = Form(...)):
+    # Restrict to authenticated admin only
+    if not is_admin_logged_in(request):
+        return responses.RedirectResponse(url="/?tab=requests&error=Admin+access+required", status_code=status.HTTP_303_SEE_OTHER)
+
     try:
         supabase.table("blood_requests").delete().eq("id", request_id).execute()
     except Exception as e:
@@ -128,8 +133,6 @@ def handle_register_donor(
 def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL", error: str = None):
     try:
         admin_status = is_admin_logged_in(request)
-        
-        # Normalize blood group filter (turns "B " into "B+")
         normalized_group = group.strip().replace(" ", "+") if group else "ALL"
 
         # 1. Fetch & Auto-Expire Requests
@@ -140,7 +143,6 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
             now_utc = datetime.now(timezone.utc)
 
             for br in raw_requests:
-                # Check creation time to see if 1+ hours expired
                 created_str = br.get("created_at")
                 hours_limit = 2
                 req_time_str = br.get("required_by_time", "2 Hours")
@@ -155,7 +157,7 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
                         expiry_dt = created_dt + timedelta(hours=hours_limit)
                         
                         if now_utc > expiry_dt:
-                            # Auto-delete expired request from database
+                            # Automatically delete expired request
                             supabase.table("blood_requests").delete().eq("id", br.get("id")).execute()
                             continue
                         else:
@@ -170,12 +172,22 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
                 else:
                     br["time_left_str"] = req_time_str
 
+                # Pre-build direct donor response link
+                donor_msg = (
+                    f"Assalam-o-Alaikum, I saw your urgent emergency post on Nushki Blood Society.\n"
+                    f"Patient: {br.get('patient_name')}\n"
+                    f"Blood Group: {br.get('blood_group')}\n"
+                    f"Hospital: {br.get('hospital')}\n\n"
+                    f"I am available and want to donate blood for this case. Please share instructions."
+                )
+                br["donor_response_url"] = f"https://wa.me/{br.get('contact_number')}?text={urllib.parse.quote(donor_msg)}"
+
                 if br.get("status") == "OPEN":
                     active_requests.append(br)
         except Exception as e:
             print("Error fetching requests:", e)
 
-        # 2. Fetch Donors with Exact Blood Group Matching
+        # 2. Fetch Donors
         donors = []
         try:
             donor_query = supabase.table("profiles").select("*")
@@ -200,7 +212,7 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
         except Exception:
             team_members = []
 
-        # 4. WhatsApp instant alert dispatches
+        # 4. WhatsApp instant alert dispatches (Hospital to Donor broadcast)
         for br in active_requests:
             matched_groups = BLOOD_COMPATIBILITY.get(br.get("blood_group", "O+"), [br.get("blood_group", "O+")])
             matched_donors = [d for d in donors if d.get("blood_group") in matched_groups and d.get("is_available")]

@@ -25,7 +25,7 @@
         <div class="nav-actions">
           {% if is_admin %}
             <form action="/auth/logout" method="POST" style="display:inline;">
-              <button type="submit" class="btn btn-admin">Logout</button>
+              <button type="submit" class="btn btn-admin" style="color: #dc2626; border-color: #fecaca; background: #fef2f2;">Logout Admin</button>
             </form>
           {% else %}
             <button type="button" onclick="toggleModal('adminModal', true)" class="btn btn-admin">Admin</button>
@@ -51,7 +51,7 @@
       <div class="section-head">
         <div>
           <h2 class="section-title">Active Emergency Requests</h2>
-          <p class="section-desc">Urgent appeals. Automatically expires after the requested hours.</p>
+          <p class="section-desc">Urgent appeals. Volunteer donors can respond directly.</p>
         </div>
       </div>
 
@@ -71,29 +71,38 @@
               {% endif %}
             </div>
 
-            <!-- Contact & WhatsApp Dispatches -->
-            <div class="card-footer">
+            <!-- Donor Response CTA (Available to everyone) -->
+            <div style="margin-top: 14px;">
+              <a href="{{ r.donor_response_url }}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 0.875rem; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);">
+                🩸 I Want to Donate for This
+              </a>
+            </div>
+
+            <!-- Attendant Contact Row -->
+            <div class="card-footer" style="margin-top: 12px; padding-top: 10px;">
               <a href="tel:{{ r.contact_number }}" class="contact-link">📞 {{ r.contact_number }}</a>
               {% if r.dispatches and r.dispatches|length > 0 %}
                 <a href="{{ r.dispatches[0].wa_url }}" target="_blank" class="btn-whatsapp">WhatsApp Alert</a>
               {% endif %}
             </div>
 
-            <!-- Action Controls: Resolve or Delete -->
-            <div style="margin-top: 10px; display: flex; gap: 8px;">
-              <form action="/requests/resolve" method="POST" style="flex: 1;">
-                <input type="hidden" name="request_id" value="{{ r.id }}">
-                <button type="submit" style="width: 100%; padding: 6px; font-size: 0.75rem; font-weight: 800; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #059669; cursor: pointer;">
-                  ✓ Mark Fulfilled
-                </button>
-              </form>
-              <form action="/requests/delete" method="POST" style="flex: 1;">
-                <input type="hidden" name="request_id" value="{{ r.id }}">
-                <button type="submit" onclick="return confirm('Delete this emergency request?');" style="width: 100%; padding: 6px; font-size: 0.75rem; font-weight: 800; border-radius: 8px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; cursor: pointer;">
-                  ✕ Cancel / Delete
-                </button>
-              </form>
-            </div>
+            <!-- ADMIN ONLY CONTROLS -->
+            {% if is_admin %}
+              <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; display: flex; gap: 8px;">
+                <form action="/requests/resolve" method="POST" style="flex: 1;">
+                  <input type="hidden" name="request_id" value="{{ r.id }}">
+                  <button type="submit" style="width: 100%; padding: 7px; font-size: 0.75rem; font-weight: 800; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #059669; cursor: pointer;">
+                    ✓ Mark Fulfilled
+                  </button>
+                </form>
+                <form action="/requests/delete" method="POST" style="flex: 1;">
+                  <input type="hidden" name="request_id" value="{{ r.id }}">
+                  <button type="submit" onclick="return confirm('Admin: Delete this emergency request?');" style="width: 100%; padding: 7px; font-size: 0.75rem; font-weight: 800; border-radius: 8px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; cursor: pointer;">
+                    ✕ Cancel / Delete
+                  </button>
+                </form>
+              </div>
+            {% endif %}
 
           </div>
         {% else %}
@@ -102,7 +111,7 @@
       </div>
     {% endif %}
 
-    <!-- 2. DONORS DIRECTORY TAB (FIXED FILTER URL ENCODINGS) -->
+    <!-- 2. DONORS DIRECTORY TAB -->
     {% if active_tab == 'donors' %}
       <div class="section-head">
         <div>
@@ -175,7 +184,7 @@
 
   <!-- ==================== POPUP MODALS ==================== -->
 
-  <!-- Post Request Modal (With Hours Expiry Selector) -->
+  <!-- Post Request Modal -->
   <div id="requestModal" class="modal-layer">
     <div class="modal-content">
       <div class="modal-header">
