@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blood Donation Society Nushki</title>
+  
+  <!-- Browser Tab Favicon Logo -->
+  <link rel="icon" type="image/png" href="/static/logo.png" />
+  <link rel="shortcut icon" type="image/png" href="/static/logo.png" />
+  <link rel="apple-touch-icon" href="/static/logo.png" />
+  
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
@@ -86,7 +92,6 @@
                 <p class="card-notes">"{{ r.notes }}"</p>
               {% endif %}
 
-              <!-- Responders Counter -->
               <div style="margin-top: 10px; font-size: 0.8rem; font-weight: 800; color: #059669;">
                 {% if r.pledges_count > 0 %}
                   🩸 {{ r.pledges_count }} Volunteer(s) responded to donate!
@@ -96,19 +101,16 @@
               </div>
             </div>
 
-            <!-- On-Site Donor Response CTA -->
             <div style="margin-top: 14px;">
               <button type="button" onclick="openRespondModal('{{ r.id }}', '{{ r.patient_name }}', '{{ r.blood_group }}')" style="width: 100%; padding: 11px; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; border: none; border-radius: 12px; font-weight: 900; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px;">
                 🩸 I Want to Donate for This
               </button>
             </div>
 
-            <!-- Attendant Phone -->
             <div class="card-footer" style="margin-top: 12px; padding-top: 10px;">
               <a href="tel:{{ r.contact_number }}" class="contact-link">📞 {{ r.contact_number }}</a>
             </div>
 
-            <!-- Admin-Only Controls -->
             {% if is_admin %}
               <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; display: flex; gap: 8px;">
                 <form action="/requests/resolve" method="POST" style="flex: 1;">
@@ -226,7 +228,6 @@
           <p id="donorCheckMsg" style="font-size: 0.78rem; font-weight: 800; margin-top: 6px;"></p>
         </div>
 
-        <!-- Cooldown Warning Card (Hidden by default) -->
         <div id="cooldownAlertCard" style="display: none; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
           <p style="font-size: 0.82rem; color: #be123c; font-weight: 900; line-height: 1.4;">
             🚫 Donation Cooldown Active:
@@ -243,7 +244,8 @@
 
           <div class="form-group">
             <label>Your Full Name *</label>
-            <input type="text" id="pledgeName" name="full_name" class="form-input" required placeholder="e.g. Sanaullah Badini">
+            <!-- Changed placeholder to Sajid Ullah -->
+            <input type="text" id="pledgeName" name="full_name" class="form-input" required placeholder="e.g. Sajid Ullah">
           </div>
 
           <div class="form-row form-group">
@@ -336,7 +338,8 @@
       <form action="/donors" method="POST">
         <div class="form-group">
           <label>Full Name *</label>
-          <input type="text" name="full_name" class="form-input" required placeholder="Your full name">
+          <!-- Changed placeholder to Sajid Ullah -->
+          <input type="text" name="full_name" class="form-input" required placeholder="e.g. Sajid Ullah">
         </div>
         <div class="form-row form-group">
           <div>
@@ -460,7 +463,6 @@
               areaInput.readOnly = true;
 
               if (!data.is_eligible) {
-                // Ineligible: block submission and alert
                 msg.style.color = '#dc2626';
                 msg.innerText = `⚠️ Ineligible: ${data.full_name} (${data.blood_group})`;
                 
@@ -471,7 +473,6 @@
                 submitBtn.style.opacity = '0.45';
                 submitBtn.innerText = 'Donation Unavailable (In Cooldown)';
               } else {
-                // Eligible
                 msg.style.color = '#059669';
                 msg.innerText = `✓ Welcome back, ${data.full_name}! Eligible to donate.`;
                 cooldownCard.style.display = 'none';
