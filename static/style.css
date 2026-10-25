@@ -118,7 +118,13 @@ body {
   align-items: center;
   gap: 12px;
 }
+.text-available {
+  color: #059669;
+}
 
+.text-cooldown {
+  color: #d97706;
+}
 /* Distinct Action Buttons */
 .btn {
   padding: 10px 20px;

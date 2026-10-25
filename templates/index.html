@@ -46,7 +46,7 @@
   <!-- Main Content -->
   <main class="main-wrapper">
     
-    <!-- 1. LIVE REQUESTS -->
+    <!-- 1. LIVE REQUESTS TAB -->
     {% if active_tab == 'requests' %}
       <div class="section-head">
         <div>
@@ -83,12 +83,12 @@
       </div>
     {% endif %}
 
-    <!-- 2. DONORS DIRECTORY -->
+    <!-- 2. DONORS DIRECTORY TAB -->
     {% if active_tab == 'donors' %}
       <div class="section-head">
         <div>
           <h2 class="section-title">Donors Directory</h2>
-          <p class="section-desc">Active volunteer blood donors in Nushki.</p>
+          <p class="section-desc">Active volunteer blood donors in Nushki with 90-day cooldown status.</p>
         </div>
         <div class="filters-bar">
           {% for bg in ['ALL', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] %}
@@ -105,10 +105,15 @@
             <div>
               <div class="card-top">
                 <span class="badge-group">{{ d.blood_group }}</span>
-                <span class="status-dot {% if d.is_available %}available{% else %}unavailable{% endif %}" title="{% if d.is_available %}Available{% else %}Unavailable{% endif %}"></span>
+                <span class="status-dot {% if d.is_available %}available{% else %}unavailable{% endif %}" title="{{ d.availability_text }}"></span>
               </div>
               <h4 class="card-title">{{ d.full_name }}</h4>
-              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">📍 {{ d.area_nushki }}</p>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">📍 {{ d.area_nushki }}</p>
+              
+              <!-- 90-day Cooldown / Eligibility Message -->
+              <p style="font-size: 0.78rem; font-weight: 800; margin-top: 8px;" class="{% if d.is_available %}text-available{% else %}text-cooldown{% endif %}">
+                ● {{ d.availability_text }}
+              </p>
             </div>
             <div style="margin-top: 18px; padding-top: 12px; border-top: 1.5px solid var(--border-subtle);">
               <a href="tel:{{ d.phone_number }}" class="card-urgency" style="text-decoration: none;">📞 {{ d.phone_number }}</a>
@@ -120,7 +125,7 @@
       </div>
     {% endif %}
 
-    <!-- 3. TEAM -->
+    <!-- 3. SOCIETY TEAM TAB -->
     {% if active_tab == 'team' %}
       <div class="section-head">
         <div>
@@ -198,7 +203,7 @@
     </div>
   </div>
 
-  <!-- Join as Donor Modal -->
+  <!-- Join as Donor Modal (With Date Tracking) -->
   <div id="donorModal" class="modal-layer">
     <div class="modal-content">
       <div class="modal-header">
@@ -229,6 +234,14 @@
           <label>Area in Nushki *</label>
           <input type="text" name="area_nushki" class="form-input" required placeholder="e.g. Station Road, Killi Mengal">
         </div>
+        
+        <!-- Last Donated Date Input -->
+        <div class="form-group">
+          <label>Last Donated Date (Optional)</label>
+          <input type="date" name="last_donated_date" class="form-input">
+          <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">Leave blank if you have never donated before.</p>
+        </div>
+
         <button type="submit" class="btn-submit" style="background: var(--sky-btn);">Register as Active Donor</button>
       </form>
     </div>
@@ -255,6 +268,7 @@
     </div>
   </div>
 
+  <!-- Modal Script -->
   <script>
     function toggleModal(id, show) {
       const el = document.getElementById(id);
