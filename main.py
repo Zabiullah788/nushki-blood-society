@@ -40,7 +40,7 @@ def calculate_donor_eligibility(last_date_str):
     except Exception:
         return True, "Ready"
 
-# --- DONOR LOOKUP API (Instant on-site detection) ---
+# --- DONOR DIRECTORY LOOKUP API ---
 
 @app.get("/api/donor-lookup")
 def donor_lookup(phone: str = ""):
@@ -65,7 +65,7 @@ def donor_lookup(phone: str = ""):
         print("Donor lookup error:", e)
     return {"found": False}
 
-# --- ON-SITE DONATION PLEDGE SUBMISSION ---
+# --- DONATION PLEDGE (AUTO-REGISTERS NEW RESPONDER INTO DIRECTORY) ---
 
 @app.post("/requests/respond", response_class=responses.RedirectResponse)
 def handle_donor_pledge(
@@ -77,11 +77,12 @@ def handle_donor_pledge(
 ):
     clean_phone = phone_number.strip()
     donor_id = None
-    donor_name = full_name
-    donor_group = blood_group
+    donor_name = full_name.strip() if full_name else None
+    donor_group = blood_group.strip().replace(" ", "+") if blood_group else None
+    area = area_nushki.strip() if area_nushki else "Nushki"
 
     try:
-        # 1. Check if donor already registered
+        # Check if donor already exists
         lookup = supabase.table("profiles").select("*").eq("phone_number", clean_phone).execute()
         
         if lookup.data and len(lookup.data) > 0:
@@ -90,20 +91,21 @@ def handle_donor_pledge(
             donor_name = existing.get("full_name")
             donor_group = existing.get("blood_group")
         else:
-            # 2. Register as new donor first
+            # Register new responder into profiles table permanently for future calls
             if donor_name and donor_group:
-                clean_group = donor_group.strip().replace(" ", "+")
                 new_donor = supabase.table("profiles").insert({
-                    "full_name": donor_name.strip(),
-                    "blood_group": clean_group,
+                    "full_name": donor_name,
+                    "blood_group": donor_group,
                     "phone_number": clean_phone,
-                    "area_nushki": (area_nushki or "Nushki").strip(),
-                    "is_available": True
+                    "area_nushki": area,
+                    "is_available": True,
+                    "created_at": datetime.now(timezone.utc).isoformat()
                 }).execute()
-                if new_donor.data:
+                
+                if new_donor.data and len(new_donor.data) > 0:
                     donor_id = new_donor.data[0].get("id")
 
-        # 3. Record pledge against the emergency request
+        # Record the pledge for the emergency
         supabase.table("request_pledges").insert({
             "request_id": request_id,
             "donor_id": donor_id,
@@ -114,11 +116,11 @@ def handle_donor_pledge(
         }).execute()
 
     except Exception as e:
-        print("Error saving donor pledge:", e)
+        print("Error saving pledge:", e)
 
     return responses.RedirectResponse(url="/?tab=requests&pledged=1", status_code=status.HTTP_303_SEE_OTHER)
 
-# --- EMERGENCY ACTIONS: POST, RESOLVE (ADMIN) & DELETE (ADMIN) ---
+# --- EMERGENCY ACTIONS: POST, RESOLVE (ADMIN), DELETE (ADMIN) ---
 
 @app.post("/requests", response_class=responses.RedirectResponse)
 @app.post("/requests/", response_class=responses.RedirectResponse)
@@ -171,7 +173,7 @@ def handle_delete_request(request: Request, request_id: str = Form(...)):
         print("Error deleting request:", e)
     return responses.RedirectResponse(url="/?tab=requests", status_code=status.HTTP_303_SEE_OTHER)
 
-# --- DONOR REGISTRATION ---
+# --- DIRECT DONOR REGISTRATION ---
 
 @app.post("/donors", response_class=responses.RedirectResponse)
 @app.post("/donors/", response_class=responses.RedirectResponse)
@@ -207,14 +209,13 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
         admin_status = is_admin_logged_in(request)
         normalized_group = group.strip().replace(" ", "+") if group else "ALL"
 
-        # 1. Fetch & Auto-Expire Requests
+        # 1. Fetch & Auto-Expire Emergency Requests
         active_requests = []
         try:
             req_res = supabase.table("blood_requests").select("*").order("created_at", desc=True).execute()
             raw_requests = req_res.data or []
             now_utc = datetime.now(timezone.utc)
 
-            # Fetch active pledges
             pledges_res = supabase.table("request_pledges").select("*").execute()
             all_pledges = pledges_res.data or []
 
@@ -247,7 +248,6 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
                 else:
                     br["time_left_str"] = req_time_str
 
-                # Attach pledged responders for this emergency
                 br_pledges = [p for p in all_pledges if p.get("request_id") == br.get("id")]
                 br["pledges"] = br_pledges
                 br["pledges_count"] = len(br_pledges)
@@ -302,3 +302,7 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
             f"<h3>Error rendering page:</h3><pre>{traceback.format_exc()}</pre>",
             status_code=500
         )
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

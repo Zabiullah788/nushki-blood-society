@@ -48,7 +48,7 @@
 
     {% if pledged_success %}
       <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 14px; background: #ecfdf5; border: 1.5px solid #a7f3d0; color: #065f46; font-weight: 800; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
-        <span>✓ Thank you! Your pledge to donate blood has been recorded on this emergency case.</span>
+        <span>✓ Thank you! Your pledge to donate blood has been recorded and added to the donor registry.</span>
         <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #059669;">✕</button>
       </div>
     {% endif %}
@@ -197,12 +197,12 @@
 
   <!-- ==================== POPUP MODALS ==================== -->
 
-  <!-- SMART DONOR RESPONSE MODAL (Direct on site) -->
+  <!-- SMART DONOR RESPONSE MODAL -->
   <div id="respondModal" class="modal-layer">
     <div class="modal-content">
       <div class="modal-header">
         <div>
-          <h3 style="font-weight: 900; font-size: 1.25rem;">Respond to Emergency</h3>
+          <h3 style="font-weight: 900; font-size: 1.25rem;">Respond to Blood Emergency</h3>
           <p id="respondSubhead" style="font-size: 0.8rem; color: var(--crimson); font-weight: 700; margin-top: 2px;"></p>
         </div>
         <button type="button" class="close-btn" onclick="toggleModal('respondModal', false)">✕</button>
@@ -217,21 +217,22 @@
           <p id="donorCheckMsg" style="font-size: 0.75rem; font-weight: 700; margin-top: 4px; color: #64748b;"></p>
         </div>
 
-        <!-- Auto-revealed only if donor is NOT registered -->
-        <div id="newDonorFields" style="display: none; border-top: 1px dashed #e2e8f0; padding-top: 12px; margin-top: 8px;">
-          <p style="font-size: 0.78rem; font-weight: 800; color: #0284c7; margin-bottom: 10px;">
-            ✨ First time donating? Enter your details once to join and pledge immediately:
-          </p>
+        <div id="donorDetailsFields">
+          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 10px; margin-bottom: 12px;">
+            <p style="font-size: 0.75rem; color: #0369a1; font-weight: 700; line-height: 1.3;">
+              ℹ️ Your details will be saved in our <strong>Donors Directory</strong> so patients in Nushki can contact you for future blood needs.
+            </p>
+          </div>
 
           <div class="form-group">
-            <label>Full Name *</label>
-            <input type="text" id="pledgeName" name="full_name" class="form-input" placeholder="Your full name">
+            <label>Your Full Name *</label>
+            <input type="text" id="pledgeName" name="full_name" class="form-input" required placeholder="e.g. Sanaullah Badini">
           </div>
 
           <div class="form-row form-group">
             <div>
               <label>Blood Group *</label>
-              <select id="pledgeGroup" name="blood_group" class="form-select">
+              <select id="pledgeGroup" name="blood_group" class="form-select" required>
                 <option value="A+">A+</option><option value="A-">A-</option>
                 <option value="B+">B+</option><option value="B-">B-</option>
                 <option value="O+">O+</option><option value="O-">O-</option>
@@ -239,14 +240,14 @@
               </select>
             </div>
             <div>
-              <label>Area in Nushki *</label>
-              <input type="text" id="pledgeArea" name="area_nushki" class="form-input" placeholder="e.g. Station Road">
+              <label>Area / Village in Nushki *</label>
+              <input type="text" id="pledgeArea" name="area_nushki" class="form-input" required placeholder="e.g. Station Road, Killi Mengal">
             </div>
           </div>
         </div>
 
-        <button type="submit" class="btn-submit" style="margin-top: 8px;">
-          Confirm My Blood Donation Pledge
+        <button type="submit" class="btn-submit" style="margin-top: 10px;">
+          Confirm Pledge &amp; Save Profile
         </button>
       </form>
     </div>
@@ -388,10 +389,16 @@
 
     function openRespondModal(reqId, patientName, bloodGroup) {
       document.getElementById('pledgeRequestId').value = reqId;
-      document.getElementById('respondSubhead').innerText = `For Patient ${patientName} (${bloodGroup})`;
+      document.getElementById('respondSubhead').innerText = `For Patient: ${patientName} (${bloodGroup})`;
       document.getElementById('pledgePhone').value = '';
+      document.getElementById('pledgeName').value = '';
+      document.getElementById('pledgeArea').value = '';
+      document.getElementById('pledgeGroup').value = bloodGroup || 'A+';
       document.getElementById('donorCheckMsg').innerText = '';
-      document.getElementById('newDonorFields').style.display = 'none';
+      
+      document.getElementById('pledgeName').readOnly = false;
+      document.getElementById('pledgeArea').readOnly = false;
+
       toggleModal('respondModal', true);
     }
 
@@ -399,15 +406,17 @@
     function checkDonorRegistration(phone) {
       clearTimeout(searchTimer);
       const msg = document.getElementById('donorCheckMsg');
-      const newFields = document.getElementById('newDonorFields');
+      const nameInput = document.getElementById('pledgeName');
+      const groupInput = document.getElementById('pledgeGroup');
+      const areaInput = document.getElementById('pledgeArea');
 
-      if (!phone || phone.length < 8) {
+      if (!phone || phone.length < 9) {
         msg.innerText = '';
-        newFields.style.display = 'none';
         return;
       }
 
-      msg.innerText = 'Checking directory...';
+      msg.style.color = '#64748b';
+      msg.innerText = 'Checking donor directory...';
 
       searchTimer = setTimeout(() => {
         fetch(`/api/donor-lookup?phone=${encodeURIComponent(phone)}`)
@@ -415,16 +424,24 @@
           .then(data => {
             if (data.found) {
               msg.style.color = '#059669';
-              msg.innerText = `✓ Registered Donor: ${data.full_name} (${data.blood_group}) - ${data.status_msg}`;
-              newFields.style.display = 'none';
+              msg.innerText = `✓ Welcome back, ${data.full_name}! Details loaded from directory.`;
+              
+              nameInput.value = data.full_name;
+              groupInput.value = data.blood_group;
+              areaInput.value = data.area_nushki || 'Nushki';
+
+              nameInput.readOnly = true;
+              areaInput.readOnly = true;
             } else {
               msg.style.color = '#0284c7';
-              msg.innerText = '● Number not registered yet. Please provide details below to register & pledge.';
-              newFields.style.display = 'block';
+              msg.innerText = '● New donor! Please complete your name and area to register.';
+              
+              nameInput.readOnly = false;
+              areaInput.readOnly = false;
             }
           })
           .catch(() => {
-            newFields.style.display = 'block';
+            msg.innerText = '';
           });
       }, 350);
     }
