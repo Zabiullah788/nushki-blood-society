@@ -1,13 +1,13 @@
 import os
 import urllib.parse
 import traceback
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form, responses, status
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from database import supabase
 from models import BLOOD_COMPATIBILITY
-from routes import requests as req_routes, donors as donor_routes, team as team_routes, auth as auth_routes
+from routes import auth as auth_routes
 from routes.auth import is_admin_logged_in
 
 app = FastAPI(title="Blood Donation Society Nushki")
@@ -22,11 +22,8 @@ if not os.path.exists(static_path):
 app.mount("/static", StaticFiles(directory=static_path), name="static")
 templates = Jinja2Templates(directory=templates_path)
 
-# Register routers
+# Register Auth router
 app.include_router(auth_routes.router)
-app.include_router(req_routes.router)
-app.include_router(donor_routes.router)
-app.include_router(team_routes.router)
 
 MOCK_REQUESTS = [
     {
@@ -54,6 +51,60 @@ MOCK_TEAM = [
     {"full_name": "Mir Sanaullah Mengal", "role_title": "General Secretary", "area": "Killi Mengal", "phone_number": "03330002222"},
     {"full_name": "Engr. Naveed Badini", "role_title": "Emergency Coordinator", "area": "Station Road", "phone_number": "03330003333"},
 ]
+
+# --- DIRECT FORM SUBMISSION ENDPOINTS ---
+
+@app.post("/requests", response_class=responses.RedirectResponse)
+@app.post("/requests/", response_class=responses.RedirectResponse)
+def handle_create_request(
+    patient_name: str = Form(...),
+    blood_group: str = Form(...),
+    units_needed: int = Form(...),
+    hospital: str = Form(...),
+    contact_number: str = Form(...),
+    required_by_time: str = Form(...),
+    notes: str = Form("")
+):
+    try:
+        supabase.table("blood_requests").insert({
+            "patient_name": patient_name,
+            "blood_group": blood_group,
+            "units_needed": units_needed,
+            "hospital": hospital,
+            "contact_number": contact_number,
+            "required_by_time": required_by_time,
+            "notes": notes,
+            "status": "OPEN"
+        }).execute()
+    except Exception as e:
+        print("Error creating request in Supabase:", e)
+
+    return responses.RedirectResponse(url="/?tab=requests", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.post("/donors", response_class=responses.RedirectResponse)
+@app.post("/donors/", response_class=responses.RedirectResponse)
+def handle_register_donor(
+    full_name: str = Form(...),
+    blood_group: str = Form(...),
+    phone_number: str = Form(...),
+    area_nushki: str = Form(...)
+):
+    try:
+        supabase.table("profiles").insert({
+            "full_name": full_name,
+            "blood_group": blood_group,
+            "phone_number": phone_number,
+            "area_nushki": area_nushki,
+            "is_available": True
+        }).execute()
+    except Exception as e:
+        print("Error registering donor in Supabase:", e)
+
+    return responses.RedirectResponse(url="/?tab=donors", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# --- DASHBOARD VIEW ---
 
 @app.get("/")
 def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL", error: str = None):
@@ -87,7 +138,7 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
         except Exception:
             team_members = MOCK_TEAM
 
-        # 4. Generate WhatsApp instant alert links
+        # 4. WhatsApp Links
         for br in blood_requests:
             matched_groups = BLOOD_COMPATIBILITY.get(br.get("blood_group", "O+"), [br.get("blood_group", "O+")])
             matched_donors = [d for d in donors if d.get("blood_group") in matched_groups and d.get("is_available")]
