@@ -17,8 +17,8 @@
             <img src="/static/logo.png" alt="Logo" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/2966/2966327.png';">
           </div>
           <div>
-            <h1 class="brand-title">Blood Donation Society Nushki</h1>
-            <p class="brand-subtitle">● DHQ Hospital &amp; Emergency Network</p>
+            <h1 class="brand-title">Blood Donation Social Walfare Socity Nushki</h1>
+            <p class="brand-subtitle"><span class="pulse-dot"></span> DHQ Hospital &amp; Emergency Network</p>
           </div>
         </div>
 
@@ -63,22 +63,22 @@
                 <span class="badge-group">{{ r.blood_group }}</span>
                 <span class="badge-status">{{ r.status }}</span>
               </div>
-              <h3 style="font-size: 1.15rem; font-weight: 800;">{{ r.patient_name }}</h3>
-              <p style="font-size: 0.85rem; color: #475569; margin: 6px 0;">🏥 {{ r.hospital }}</p>
-              <p style="font-size: 0.85rem; color: var(--primary); font-weight: 700;">⏳ {{ r.required_by_time }} ({{ r.units_needed }} Units)</p>
+              <h3 class="card-title">{{ r.patient_name }}</h3>
+              <p class="card-hospital">🏥 {{ r.hospital }}</p>
+              <p class="card-urgency">⏳ {{ r.required_by_time }} ({{ r.units_needed }} Units)</p>
               {% if r.notes %}
-                <p style="font-size: 0.8rem; background: #f1f5f9; padding: 8px 10px; border-radius: 8px; margin-top: 10px; color: #334155;">{{ r.notes }}</p>
+                <p class="card-notes">"{{ r.notes }}"</p>
               {% endif %}
             </div>
-            <div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-              <a href="tel:{{ r.contact_number }}" style="font-weight: 800; font-size: 0.9rem; color: var(--text-main); text-decoration: none;">📞 {{ r.contact_number }}</a>
+            <div class="card-footer">
+              <a href="tel:{{ r.contact_number }}" class="contact-link">📞 {{ r.contact_number }}</a>
               {% if r.dispatches and r.dispatches|length > 0 %}
-                <a href="{{ r.dispatches[0].wa_url }}" target="_blank" style="padding: 7px 12px; background: #059669; color: #fff; border-radius: 8px; text-decoration: none; font-size: 0.8rem; font-weight: 700;">WhatsApp Alert</a>
+                <a href="{{ r.dispatches[0].wa_url }}" target="_blank" class="btn-whatsapp">WhatsApp Alert</a>
               {% endif %}
             </div>
           </div>
         {% else %}
-          <p style="color: var(--text-muted);">No active emergency appeals at this time.</p>
+          <p style="color: var(--text-muted); font-weight: 600;">No active emergency appeals at this time.</p>
         {% endfor %}
       </div>
     {% endif %}
@@ -105,17 +105,17 @@
             <div>
               <div class="card-top">
                 <span class="badge-group">{{ d.blood_group }}</span>
-                <span style="width: 10px; height: 10px; border-radius: 50%; background: {% if d.is_available %}#10b981{% else %}#cbd5e1{% endif %};"></span>
+                <span class="status-dot {% if d.is_available %}available{% else %}unavailable{% endif %}" title="{% if d.is_available %}Available{% else %}Unavailable{% endif %}"></span>
               </div>
-              <h4 style="font-size: 1.1rem; font-weight: 800;">{{ d.full_name }}</h4>
-              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">📍 {{ d.area_nushki }}</p>
+              <h4 class="card-title">{{ d.full_name }}</h4>
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">📍 {{ d.area_nushki }}</p>
             </div>
-            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-color);">
-              <a href="tel:{{ d.phone_number }}" style="font-size: 0.9rem; font-weight: 800; color: var(--primary); text-decoration: none;">📞 {{ d.phone_number }}</a>
+            <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(226, 232, 240, 0.7);">
+              <a href="tel:{{ d.phone_number }}" class="card-urgency" style="text-decoration: none;">📞 {{ d.phone_number }}</a>
             </div>
           </div>
         {% else %}
-          <p style="color: var(--text-muted);">No donors found.</p>
+          <p style="color: var(--text-muted); font-weight: 600;">No donors found.</p>
         {% endfor %}
       </div>
     {% endif %}
@@ -132,12 +132,12 @@
         {% for m in team_members %}
           <div class="card">
             <div>
-              <h3 style="font-size: 1.15rem; font-weight: 900;">{{ m.full_name }}</h3>
+              <h3 class="card-title">{{ m.full_name }}</h3>
               <p style="font-size: 0.85rem; color: var(--primary); font-weight: 800; margin-top: 2px;">{{ m.role_title }}</p>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 6px;">📍 {{ m.area }}</p>
             </div>
             <div style="margin-top: 16px;">
-              <a href="tel:{{ m.phone_number }}" style="font-size: 0.9rem; font-weight: 800; color: var(--text-main); text-decoration: none;">📞 {{ m.phone_number }}</a>
+              <a href="tel:{{ m.phone_number }}" class="contact-link">📞 {{ m.phone_number }}</a>
             </div>
           </div>
         {% endfor %}
@@ -152,7 +152,7 @@
   <div id="requestModal" class="modal-layer">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 style="font-weight: 900; font-size: 1.25rem;">Post Emergency Need</h3>
+        <h3 style="font-weight: 900; font-size: 1.35rem;">Post Emergency Need</h3>
         <button type="button" class="close-btn" onclick="toggleModal('requestModal', false)">✕</button>
       </div>
       <form action="/requests" method="POST">
@@ -191,9 +191,9 @@
         </div>
         <div class="form-group">
           <label>Notes</label>
-          <textarea name="notes" rows="2" class="form-textarea" placeholder="Case details..."></textarea>
+          <textarea name="notes" rows="2" class="form-textarea" placeholder="Surgery, emergency details..."></textarea>
         </div>
-        <button type="submit" class="btn-submit">Submit Emergency Appeal</button>
+        <button type="submit" class="btn-submit">Broadcast Appeal Now</button>
       </form>
     </div>
   </div>
@@ -202,7 +202,7 @@
   <div id="donorModal" class="modal-layer">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 style="font-weight: 900; font-size: 1.25rem;">Join as Blood Donor</h3>
+        <h3 style="font-weight: 900; font-size: 1.35rem;">Join as Blood Donor</h3>
         <button type="button" class="close-btn" onclick="toggleModal('donorModal', false)">✕</button>
       </div>
       <form action="/donors" method="POST">
@@ -229,7 +229,7 @@
           <label>Area in Nushki *</label>
           <input type="text" name="area_nushki" class="form-input" required placeholder="e.g. Station Road, Killi Mengal">
         </div>
-        <button type="submit" class="btn-submit" style="background: var(--secondary);">Register as Donor</button>
+        <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #0284c7, #0369a1);">Register as Active Donor</button>
       </form>
     </div>
   </div>
@@ -238,7 +238,7 @@
   <div id="adminModal" class="modal-layer">
     <div class="modal-content" style="max-width: 380px;">
       <div class="modal-header">
-        <h3 style="font-weight: 900; font-size: 1.25rem;">Admin Login</h3>
+        <h3 style="font-weight: 900; font-size: 1.35rem;">Admin Login</h3>
         <button type="button" class="close-btn" onclick="toggleModal('adminModal', false)">✕</button>
       </div>
       <form action="/auth/login" method="POST">
@@ -250,7 +250,7 @@
           <label>Password</label>
           <input type="password" name="password" class="form-input" required>
         </div>
-        <button type="submit" class="btn-submit" style="background: var(--text-main);">Login</button>
+        <button type="submit" class="btn-submit" style="background: #0f172a;">Sign In</button>
       </form>
     </div>
   </div>
