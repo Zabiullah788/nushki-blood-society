@@ -9,63 +9,57 @@
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans">
 
-<!-- White & Soft Medical Blue Navbar -->
-<header class="bg-white border-b border-sky-100 shadow-sm sticky top-0 z-50">
+<!-- Modern Frosted Glass UI Navbar -->
+<header class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-700/60 shadow-lg shadow-black/20 text-slate-100 transition-all">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-20">
       
-      <!-- Brand & Blood Logo -->
-      <a href="/?tab=requests" class="flex items-center space-x-3 group">
-        <!-- Prominent Badge with Blood Drop + Cross -->
-        <div class="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200">
-          <svg class="w-7 h-7 text-red-600" viewBox="0 0 24 24" fill="currentColor">
-            <!-- Blood Drop Body -->
-            <path d="M12 2.1C11.6 2.1 7 8.5 7 14c0 2.76 2.24 5 5 5s5-2.24 5-5c0-5.5-4.6-11.9-5-11.9z"/>
-            <!-- Inner Medical Plus Sign (White) -->
-            <path fill="#ffffff" d="M11 11h2v6h-2z"/>
-            <path fill="#ffffff" d="M9 13h6v2H9z"/>
-          </svg>
+      <!-- Brand & Your Actual Image Logo -->
+      <a href="/?tab=requests" class="flex items-center space-x-3.5 group">
+        <!-- Logo Container with Soft Glass Glow -->
+        <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 p-1 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-200">
+          <img src="/static/logo.png" alt="Blood Society Logo" class="w-full h-full object-contain rounded-xl" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/2966/2966327.png';">
         </div>
         <div>
-          <h1 class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-tight group-hover:text-sky-600 transition-colors">
+          <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight leading-none group-hover:text-rose-400 transition-colors">
             Blood Donation Society Nushki
           </h1>
-          <p class="text-xs sm:text-sm font-medium text-sky-700 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+          <p class="text-xs sm:text-sm font-medium text-sky-400 mt-1 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
             DHQ Hospital &amp; Emergency Network
           </p>
         </div>
       </a>
 
-      <!-- Action Buttons -->
+      <!-- Action Buttons with Modern Glass Pill Styling -->
       <div class="flex items-center space-x-2 sm:space-x-3">
         <!-- Admin Link -->
-        <a href="#admin-section" class="px-3 py-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors">
+        <a href="#admin-section" class="px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all">
           Admin
         </a>
 
-        <!-- Join as Donor Button (Light Sky Blue Tint) -->
-        <a href="#donor-register" class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-200 rounded-xl transition-all shadow-sm">
+        <!-- Join as Donor Button (Glass Blue Pill) -->
+        <a href="#donor-register" class="px-3.5 py-2 text-xs sm:text-sm font-semibold text-sky-300 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-400/30 rounded-xl backdrop-blur-sm transition-all shadow-sm">
           Join as Donor
         </a>
 
-        <!-- Post Need Button (Deep Red Emergency CTA) -->
-        <a href="#post-request" class="px-4 py-2 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-xl transition-all shadow-md shadow-red-200 hover:shadow-lg flex items-center gap-1.5">
+        <!-- Post Need Button (Emergency Crimson Glow) -->
+        <a href="#post-request" class="px-4 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 rounded-xl transition-all shadow-lg shadow-rose-900/40 hover:shadow-rose-600/50 flex items-center gap-1.5 border border-rose-500/30">
           <span>+</span>
           <span>Post Need</span>
         </a>
       </div>
     </div>
 
-    <!-- Navigation Tabs with Sky-Blue Active Highlights -->
-    <nav class="flex space-x-8 border-t border-slate-100 -mb-px text-sm font-semibold">
-      <a href="/?tab=requests" class="py-3 px-1 border-b-2 {% if active_tab == 'requests' %}border-sky-600 text-sky-600{% else %}border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300{% endif %} transition-colors">
+    <!-- Navigation Tabs -->
+    <nav class="flex space-x-8 border-t border-slate-800/80 -mb-px text-sm font-semibold">
+      <a href="/?tab=requests" class="py-3 px-1 border-b-2 {% if active_tab == 'requests' %}border-rose-500 text-rose-400{% else %}border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600{% endif %} transition-colors">
         Live Requests
       </a>
-      <a href="/?tab=donors" class="py-3 px-1 border-b-2 {% if active_tab == 'donors' %}border-sky-600 text-sky-600{% else %}border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300{% endif %} transition-colors">
+      <a href="/?tab=donors" class="py-3 px-1 border-b-2 {% if active_tab == 'donors' %}border-rose-500 text-rose-400{% else %}border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600{% endif %} transition-colors">
         Donors Directory
       </a>
-      <a href="/?tab=team" class="py-3 px-1 border-b-2 {% if active_tab == 'team' %}border-sky-600 text-sky-600{% else %}border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300{% endif %} transition-colors">
+      <a href="/?tab=team" class="py-3 px-1 border-b-2 {% if active_tab == 'team' %}border-rose-500 text-rose-400{% else %}border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-600{% endif %} transition-colors">
         Society Core Team
       </a>
     </nav>
