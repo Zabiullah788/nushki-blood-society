@@ -46,6 +46,15 @@
   <!-- Main Content -->
   <main class="main-wrapper">
 
+    <!-- Cooldown Warning Banner -->
+    {% if cooldown_error %}
+      <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 14px; background: #fffbeb; border: 1.5px solid #fde68a; color: #b45309; font-weight: 800; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
+        <span>⚠️ {{ cooldown_error }}</span>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #b45309;">✕</button>
+      </div>
+    {% endif %}
+
+    <!-- Pledge Success Banner -->
     {% if pledged_success %}
       <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 14px; background: #ecfdf5; border: 1.5px solid #a7f3d0; color: #065f46; font-weight: 800; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
         <span>✓ Thank you! Your pledge to donate blood has been recorded and added to the donor registry.</span>
@@ -208,13 +217,21 @@
         <button type="button" class="close-btn" onclick="toggleModal('respondModal', false)">✕</button>
       </div>
 
-      <form action="/requests/respond" method="POST">
+      <form id="pledgeForm" action="/requests/respond" method="POST">
         <input type="hidden" id="pledgeRequestId" name="request_id" value="">
 
         <div class="form-group">
           <label>Your Phone / WhatsApp Number *</label>
           <input type="tel" id="pledgePhone" name="phone_number" class="form-input" required placeholder="0333..." oninput="checkDonorRegistration(this.value)">
-          <p id="donorCheckMsg" style="font-size: 0.75rem; font-weight: 700; margin-top: 4px; color: #64748b;"></p>
+          <p id="donorCheckMsg" style="font-size: 0.78rem; font-weight: 800; margin-top: 6px;"></p>
+        </div>
+
+        <!-- Cooldown Warning Card (Hidden by default) -->
+        <div id="cooldownAlertCard" style="display: none; background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+          <p style="font-size: 0.82rem; color: #be123c; font-weight: 900; line-height: 1.4;">
+            🚫 Donation Cooldown Active:
+          </p>
+          <p id="cooldownAlertDetail" style="font-size: 0.78rem; color: #9f1239; font-weight: 700; margin-top: 2px; line-height: 1.35;"></p>
         </div>
 
         <div id="donorDetailsFields">
@@ -246,7 +263,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn-submit" style="margin-top: 10px;">
+        <button type="submit" id="btnSubmitPledge" class="btn-submit" style="margin-top: 10px;">
           Confirm Pledge &amp; Save Profile
         </button>
       </form>
@@ -398,6 +415,12 @@
       
       document.getElementById('pledgeName').readOnly = false;
       document.getElementById('pledgeArea').readOnly = false;
+      document.getElementById('cooldownAlertCard').style.display = 'none';
+      
+      const submitBtn = document.getElementById('btnSubmitPledge');
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.innerText = 'Confirm Pledge & Save Profile';
 
       toggleModal('respondModal', true);
     }
@@ -409,9 +432,15 @@
       const nameInput = document.getElementById('pledgeName');
       const groupInput = document.getElementById('pledgeGroup');
       const areaInput = document.getElementById('pledgeArea');
+      const cooldownCard = document.getElementById('cooldownAlertCard');
+      const cooldownDetail = document.getElementById('cooldownAlertDetail');
+      const submitBtn = document.getElementById('btnSubmitPledge');
 
       if (!phone || phone.length < 9) {
         msg.innerText = '';
+        cooldownCard.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
         return;
       }
 
@@ -423,21 +452,42 @@
           .then(res => res.json())
           .then(data => {
             if (data.found) {
-              msg.style.color = '#059669';
-              msg.innerText = `✓ Welcome back, ${data.full_name}! Details loaded from directory.`;
-              
               nameInput.value = data.full_name;
               groupInput.value = data.blood_group;
               areaInput.value = data.area_nushki || 'Nushki';
 
               nameInput.readOnly = true;
               areaInput.readOnly = true;
+
+              if (!data.is_eligible) {
+                // Ineligible: block submission and alert
+                msg.style.color = '#dc2626';
+                msg.innerText = `⚠️ Ineligible: ${data.full_name} (${data.blood_group})`;
+                
+                cooldownCard.style.display = 'block';
+                cooldownDetail.innerText = `According to our records, your 90-day cooldown is still active. ${data.status_msg}. You cannot donate for this emergency.`;
+
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = '0.45';
+                submitBtn.innerText = 'Donation Unavailable (In Cooldown)';
+              } else {
+                // Eligible
+                msg.style.color = '#059669';
+                msg.innerText = `✓ Welcome back, ${data.full_name}! Eligible to donate.`;
+                cooldownCard.style.display = 'none';
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+                submitBtn.innerText = 'Confirm Blood Donation Pledge';
+              }
             } else {
               msg.style.color = '#0284c7';
               msg.innerText = '● New donor! Please complete your name and area to register.';
-              
               nameInput.readOnly = false;
               areaInput.readOnly = false;
+              cooldownCard.style.display = 'none';
+              submitBtn.disabled = false;
+              submitBtn.style.opacity = '1';
+              submitBtn.innerText = 'Confirm Pledge & Save Profile';
             }
           })
           .catch(() => {

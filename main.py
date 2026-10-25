@@ -65,7 +65,7 @@ def donor_lookup(phone: str = ""):
         print("Donor lookup error:", e)
     return {"found": False}
 
-# --- DONATION PLEDGE (AUTO-REGISTERS NEW RESPONDER INTO DIRECTORY) ---
+# --- DONATION PLEDGE (CHECKS 90-DAY COOLDOWN & SAVES NEW PROFILES) ---
 
 @app.post("/requests/respond", response_class=responses.RedirectResponse)
 def handle_donor_pledge(
@@ -82,7 +82,7 @@ def handle_donor_pledge(
     area = area_nushki.strip() if area_nushki else "Nushki"
 
     try:
-        # Check if donor already exists
+        # Check if donor is already registered
         lookup = supabase.table("profiles").select("*").eq("phone_number", clean_phone).execute()
         
         if lookup.data and len(lookup.data) > 0:
@@ -90,6 +90,12 @@ def handle_donor_pledge(
             donor_id = existing.get("id")
             donor_name = existing.get("full_name")
             donor_group = existing.get("blood_group")
+            
+            # Enforce 90-day cooldown check
+            is_eligible, status_msg = calculate_donor_eligibility(existing.get("last_donated_date"))
+            if not is_eligible:
+                encoded_err = urllib.parse.quote(f"Donation blocked: {donor_name}, your 90-day rest period is still active ({status_msg}).")
+                return responses.RedirectResponse(url=f"/?tab=requests&cooldown_error={encoded_err}", status_code=status.HTTP_303_SEE_OTHER)
         else:
             # Register new responder into profiles table permanently for future calls
             if donor_name and donor_group:
@@ -204,7 +210,14 @@ def handle_register_donor(
 # --- DASHBOARD VIEW ---
 
 @app.get("/")
-def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL", error: str = None, pledged: str = None):
+def render_dashboard(
+    request: Request,
+    tab: str = "requests",
+    group: str = "ALL",
+    error: str = None,
+    pledged: str = None,
+    cooldown_error: str = None
+):
     try:
         admin_status = is_admin_logged_in(request)
         normalized_group = group.strip().replace(" ", "+") if group else "ALL"
@@ -291,7 +304,8 @@ def render_dashboard(request: Request, tab: str = "requests", group: str = "ALL"
             "team_members": team_members,
             "is_admin": admin_status,
             "login_error": error,
-            "pledged_success": bool(pledged)
+            "pledged_success": bool(pledged),
+            "cooldown_error": cooldown_error
         }
 
         return templates.TemplateResponse(request=request, name="index.html", context=context)
