@@ -51,7 +51,7 @@
       <div class="section-head">
         <div>
           <h2 class="section-title">Active Emergency Requests</h2>
-          <p class="section-desc">Urgent blood appeals for DHQ Hospital Nushki and surrounding clinics.</p>
+          <p class="section-desc">Urgent appeals. Automatically expires after the requested hours.</p>
         </div>
       </div>
 
@@ -65,17 +65,36 @@
               </div>
               <h3 class="card-title">{{ r.patient_name }}</h3>
               <p class="card-hospital">🏥 {{ r.hospital }}</p>
-              <p class="card-urgency">⏳ {{ r.required_by_time }} ({{ r.units_needed }} Units)</p>
+              <p class="card-urgency">⏳ Time Left: {{ r.time_left_str }} ({{ r.units_needed }} Units)</p>
               {% if r.notes %}
                 <p class="card-notes">"{{ r.notes }}"</p>
               {% endif %}
             </div>
+
+            <!-- Contact & WhatsApp Dispatches -->
             <div class="card-footer">
               <a href="tel:{{ r.contact_number }}" class="contact-link">📞 {{ r.contact_number }}</a>
               {% if r.dispatches and r.dispatches|length > 0 %}
                 <a href="{{ r.dispatches[0].wa_url }}" target="_blank" class="btn-whatsapp">WhatsApp Alert</a>
               {% endif %}
             </div>
+
+            <!-- Action Controls: Resolve or Delete -->
+            <div style="margin-top: 10px; display: flex; gap: 8px;">
+              <form action="/requests/resolve" method="POST" style="flex: 1;">
+                <input type="hidden" name="request_id" value="{{ r.id }}">
+                <button type="submit" style="width: 100%; padding: 6px; font-size: 0.75rem; font-weight: 800; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #059669; cursor: pointer;">
+                  ✓ Mark Fulfilled
+                </button>
+              </form>
+              <form action="/requests/delete" method="POST" style="flex: 1;">
+                <input type="hidden" name="request_id" value="{{ r.id }}">
+                <button type="submit" onclick="return confirm('Delete this emergency request?');" style="width: 100%; padding: 6px; font-size: 0.75rem; font-weight: 800; border-radius: 8px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; cursor: pointer;">
+                  ✕ Cancel / Delete
+                </button>
+              </form>
+            </div>
+
           </div>
         {% else %}
           <p style="color: var(--text-muted); font-weight: 600;">No active emergency appeals at this time.</p>
@@ -83,7 +102,7 @@
       </div>
     {% endif %}
 
-    <!-- 2. DONORS DIRECTORY TAB -->
+    <!-- 2. DONORS DIRECTORY TAB (FIXED FILTER URL ENCODINGS) -->
     {% if active_tab == 'donors' %}
       <div class="section-head">
         <div>
@@ -91,11 +110,15 @@
           <p class="section-desc">Active volunteer blood donors in Nushki with 90-day cooldown status.</p>
         </div>
         <div class="filters-bar">
-          {% for bg in ['ALL', 'A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] %}
-            <a href="/?tab=donors&group={{ bg }}" class="filter-btn {% if selected_group == bg %}active{% endif %}">
-              {{ bg }}
-            </a>
-          {% endfor %}
+          <a href="/?tab=donors&group=ALL" class="filter-btn {% if selected_group == 'ALL' %}active{% endif %}">ALL</a>
+          <a href="/?tab=donors&group=A%2B" class="filter-btn {% if selected_group == 'A+' %}active{% endif %}">A+</a>
+          <a href="/?tab=donors&group=A-" class="filter-btn {% if selected_group == 'A-' %}active{% endif %}">A-</a>
+          <a href="/?tab=donors&group=B%2B" class="filter-btn {% if selected_group == 'B+' %}active{% endif %}">B+</a>
+          <a href="/?tab=donors&group=B-" class="filter-btn {% if selected_group == 'B-' %}active{% endif %}">B-</a>
+          <a href="/?tab=donors&group=O%2B" class="filter-btn {% if selected_group == 'O+' %}active{% endif %}">O+</a>
+          <a href="/?tab=donors&group=O-" class="filter-btn {% if selected_group == 'O-' %}active{% endif %}">O-</a>
+          <a href="/?tab=donors&group=AB%2B" class="filter-btn {% if selected_group == 'AB+' %}active{% endif %}">AB+</a>
+          <a href="/?tab=donors&group=AB-" class="filter-btn {% if selected_group == 'AB-' %}active{% endif %}">AB-</a>
         </div>
       </div>
 
@@ -110,7 +133,6 @@
               <h4 class="card-title">{{ d.full_name }}</h4>
               <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">📍 {{ d.area_nushki }}</p>
               
-              <!-- 90-day Cooldown / Eligibility Message -->
               <p style="font-size: 0.78rem; font-weight: 800; margin-top: 8px;" class="{% if d.is_available %}text-available{% else %}text-cooldown{% endif %}">
                 ● {{ d.availability_text }}
               </p>
@@ -120,7 +142,7 @@
             </div>
           </div>
         {% else %}
-          <p style="color: var(--text-muted); font-weight: 600;">No donors found.</p>
+          <p style="color: var(--text-muted); font-weight: 600;">No donors found for group {{ selected_group }}.</p>
         {% endfor %}
       </div>
     {% endif %}
@@ -153,7 +175,7 @@
 
   <!-- ==================== POPUP MODALS ==================== -->
 
-  <!-- Post Request Modal -->
+  <!-- Post Request Modal (With Hours Expiry Selector) -->
   <div id="requestModal" class="modal-layer">
     <div class="modal-content">
       <div class="modal-header">
@@ -190,8 +212,14 @@
             <input type="tel" name="contact_number" class="form-input" required placeholder="0333...">
           </div>
           <div>
-            <label>Urgency Time *</label>
-            <input type="text" name="required_by_time" class="form-input" required placeholder="Within 2 Hours">
+            <label>Expires In (Hours) *</label>
+            <select name="expiry_hours" class="form-select" required>
+              <option value="1">1 Hour (Critical Emergency)</option>
+              <option value="2" selected>2 Hours</option>
+              <option value="4">4 Hours</option>
+              <option value="12">12 Hours</option>
+              <option value="24">24 Hours</option>
+            </select>
           </div>
         </div>
         <div class="form-group">
@@ -203,7 +231,7 @@
     </div>
   </div>
 
-  <!-- Join as Donor Modal (With Date Tracking) -->
+  <!-- Join as Donor Modal -->
   <div id="donorModal" class="modal-layer">
     <div class="modal-content">
       <div class="modal-header">
@@ -235,7 +263,6 @@
           <input type="text" name="area_nushki" class="form-input" required placeholder="e.g. Station Road, Killi Mengal">
         </div>
         
-        <!-- Last Donated Date Input -->
         <div class="form-group">
           <label>Last Donated Date (Optional)</label>
           <input type="date" name="last_donated_date" class="form-input">
@@ -268,7 +295,6 @@
     </div>
   </div>
 
-  <!-- Modal Script -->
   <script>
     function toggleModal(id, show) {
       const el = document.getElementById(id);
