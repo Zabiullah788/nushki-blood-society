@@ -1,22 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-deep: #0b1120;
-  --bg-surface: #0f172a;
-  --bg-card: #1e293b;
-  --bg-card-hover: #243248;
-  --border-dark: #334155;
-  --border-light: rgba(255, 255, 255, 0.1);
+  --crimson: #dc2626;
+  --crimson-dark: #b91c1c;
+  --crimson-soft: #fef2f2;
+  --crimson-border: #fecaca;
   
-  --crimson: #e11d48;
-  --crimson-hover: #be123c;
-  --crimson-badge: rgba(225, 29, 72, 0.18);
-  --cyan: #0284c7;
-  --emerald: #10b981;
+  --navy-dark: #0f172a;
+  --navy-slate: #1e293b;
+  --text-muted: #64748b;
   
-  --text-white: #f8fafc;
-  --text-dim: #94a3b8;
-  --text-sub: #cbd5e1;
+  --bg-page: #f1f5f9;
+  --card-white: #ffffff;
+  --border-subtle: #e2e8f0;
+  
+  --emerald: #059669;
+  --emerald-soft: #ecfdf5;
+  --amber: #d97706;
+  --amber-soft: #fffbeb;
+  --sky-btn: #0284c7;
+  --sky-soft: #f0f9ff;
 }
 
 * {
@@ -27,21 +30,21 @@
 }
 
 body {
-  background-color: var(--bg-deep);
-  color: var(--text-white);
+  background-color: var(--bg-page);
+  color: var(--navy-dark);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* Solid Dark Header */
+/* Header */
 .site-header {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-dark);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  background: #ffffff;
+  border-bottom: 2px solid var(--border-subtle);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
 
 .header-container {
@@ -64,9 +67,9 @@ body {
 }
 
 .brand-logo-frame {
-  width: 50px;
-  height: 50px;
-  min-width: 50px;
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
   border-radius: 14px;
   background: #ffffff;
   border: 2px solid var(--crimson);
@@ -74,7 +77,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.15);
 }
 
 .brand-logo-frame img {
@@ -85,10 +88,10 @@ body {
 }
 
 .brand-title {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 900;
-  color: var(--text-white);
-  letter-spacing: -0.02em;
+  color: var(--navy-dark);
+  letter-spacing: -0.025em;
   line-height: 1.2;
 }
 
@@ -107,7 +110,7 @@ body {
   height: 8px;
   border-radius: 50%;
   background: var(--crimson);
-  box-shadow: 0 0 10px var(--crimson);
+  box-shadow: 0 0 8px var(--crimson);
 }
 
 .nav-actions {
@@ -116,7 +119,7 @@ body {
   gap: 12px;
 }
 
-/* Solid Buttons */
+/* Distinct Action Buttons */
 .btn {
   padding: 10px 20px;
   font-size: 0.875rem;
@@ -137,54 +140,54 @@ body {
 }
 
 .btn-admin {
-  background: var(--bg-card);
-  color: var(--text-sub);
-  border: 1px solid var(--border-dark);
+  background: var(--bg-page);
+  color: var(--navy-slate);
+  border: 1.5px solid var(--border-subtle);
 }
 .btn-admin:hover {
-  background: #334155;
-  color: #ffffff;
+  background: #e2e8f0;
+  color: var(--navy-dark);
 }
 
 .btn-donor {
-  background: rgba(2, 132, 199, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: var(--sky-soft);
+  color: var(--sky-btn);
+  border: 1.5px solid #bae6fd;
 }
 .btn-donor:hover {
-  background: rgba(2, 132, 199, 0.3);
-  color: #ffffff;
+  background: #e0f2fe;
+  color: #0369a1;
 }
 
 .btn-post {
   background: var(--crimson);
   color: #ffffff;
-  box-shadow: 0 4px 18px rgba(225, 29, 72, 0.45);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
 }
 .btn-post:hover {
-  background: var(--crimson-hover);
-  box-shadow: 0 6px 22px rgba(225, 29, 72, 0.6);
+  background: var(--crimson-dark);
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.45);
 }
 
 /* Tabs */
 .nav-tabs {
   display: flex;
   gap: 32px;
-  border-top: 1px solid var(--border-dark);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .tab-link {
   padding: 14px 4px;
-  font-size: 0.9rem;
+  font-size: 0.925rem;
   font-weight: 800;
-  color: var(--text-dim);
+  color: var(--text-muted);
   text-decoration: none;
   position: relative;
   transition: color 0.15s;
 }
 
 .tab-link:hover {
-  color: var(--text-white);
+  color: var(--navy-dark);
 }
 
 .tab-link.active {
@@ -200,7 +203,6 @@ body {
   height: 3px;
   background: var(--crimson);
   border-radius: 4px 4px 0 0;
-  box-shadow: 0 -2px 10px var(--crimson);
 }
 
 /* Main Content Area */
@@ -225,73 +227,70 @@ body {
   font-size: 1.85rem;
   font-weight: 900;
   letter-spacing: -0.03em;
-  color: var(--text-white);
+  color: var(--navy-dark);
 }
 
 .section-desc {
   font-size: 0.95rem;
-  color: var(--text-dim);
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
-/* Blood Group Filter Bar */
+/* Filter Bar */
 .filters-bar {
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding: 6px;
-  background: var(--bg-surface);
+  background: #ffffff;
   border-radius: 14px;
-  border: 1px solid var(--border-dark);
+  border: 1.5px solid var(--border-subtle);
 }
 
 .filter-btn {
-  padding: 8px 14px;
+  padding: 7px 15px;
   font-size: 0.825rem;
   font-weight: 800;
   border-radius: 10px;
   text-decoration: none;
   background: transparent;
-  color: var(--text-dim);
+  color: var(--text-muted);
   transition: all 0.15s;
 }
 
 .filter-btn:hover {
-  color: #ffffff;
-  background: var(--bg-card);
+  color: var(--navy-dark);
+  background: var(--bg-page);
 }
 
 .filter-btn.active {
   background: var(--crimson);
   color: #ffffff;
-  box-shadow: 0 2px 12px rgba(225, 29, 72, 0.4);
 }
 
-/* Cards Grid */
+/* Grid & Solid Cards */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 1.75rem;
 }
 
-/* Dark Solid Cards with Sharp Contrast */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-dark);
+  background: #ffffff;
+  border: 1.5px solid var(--border-subtle);
   border-radius: 20px;
   padding: 1.75rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
   transition: all 0.2s ease;
 }
 
 .card:hover {
-  background: var(--bg-card-hover);
-  border-color: #475569;
+  border-color: #cbd5e1;
   transform: translateY(-3px);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
 }
 
 .card-top {
@@ -301,7 +300,7 @@ body {
   margin-bottom: 1.25rem;
 }
 
-/* Solid Red Blood Group Pill */
+/* Solid Crimson Blood Group Tag */
 .badge-group {
   padding: 6px 16px;
   background: var(--crimson);
@@ -309,31 +308,30 @@ body {
   font-weight: 900;
   font-size: 1.25rem;
   border-radius: 12px;
-  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4);
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.25);
 }
 
-/* Open Urgency Tag */
 .badge-status {
   padding: 5px 12px;
   font-size: 0.75rem;
   font-weight: 900;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   border-radius: 999px;
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: var(--amber-soft);
+  color: var(--amber);
+  border: 1px solid #fde68a;
 }
 
 .card-title {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 900;
-  color: var(--text-white);
+  color: var(--navy-dark);
   letter-spacing: -0.02em;
 }
 
 .card-hospital {
   font-size: 0.9rem;
-  color: var(--text-sub);
+  color: #475569;
   font-weight: 600;
   margin: 8px 0 4px 0;
   display: flex;
@@ -342,8 +340,8 @@ body {
 }
 
 .card-urgency {
-  font-size: 0.85rem;
-  color: #fb7185;
+  font-size: 0.875rem;
+  color: var(--crimson);
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -352,19 +350,19 @@ body {
 
 .card-notes {
   font-size: 0.85rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-dark);
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
   padding: 10px 14px;
   border-radius: 12px;
   margin-top: 14px;
-  color: var(--text-sub);
+  color: #334155;
   line-height: 1.45;
 }
 
 .card-footer {
   margin-top: 1.75rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-dark);
+  border-top: 1.5px solid var(--border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -373,7 +371,7 @@ body {
 .contact-link {
   font-weight: 800;
   font-size: 0.95rem;
-  color: var(--text-white);
+  color: var(--navy-dark);
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -382,10 +380,9 @@ body {
 }
 
 .contact-link:hover {
-  color: #fb7185;
+  color: var(--crimson);
 }
 
-/* Solid WhatsApp Button */
 .btn-whatsapp {
   padding: 9px 18px;
   background: var(--emerald);
@@ -394,7 +391,7 @@ body {
   text-decoration: none;
   font-size: 0.825rem;
   font-weight: 900;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -402,10 +399,10 @@ body {
 }
 
 .btn-whatsapp:hover {
-  background: #059669;
+  background: #047857;
 }
 
-/* Donor Status Dot */
+/* Donor Dot */
 .status-dot {
   width: 10px;
   height: 10px;
@@ -414,20 +411,19 @@ body {
 }
 .status-dot.available {
   background: var(--emerald);
-  box-shadow: 0 0 10px var(--emerald);
 }
 .status-dot.unavailable {
-  background: #64748b;
+  background: #cbd5e1;
 }
 
-/* Modals with Dark Solid Canvas */
+/* Modals */
 .modal-layer {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(3, 7, 18, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: none;
   align-items: center;
   justify-content: center;
@@ -439,14 +435,14 @@ body {
 }
 
 .modal-content {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-dark);
+  background: #ffffff;
+  border: 1.5px solid var(--border-subtle);
   border-radius: 24px;
   max-width: 480px;
   width: 100%;
   padding: 2.25rem;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
-  color: var(--text-white);
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.18);
+  color: var(--navy-dark);
 }
 
 .modal-header {
@@ -455,7 +451,7 @@ body {
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-dark);
+  border-bottom: 1.5px solid var(--border-subtle);
 }
 
 .form-group {
@@ -466,18 +462,18 @@ body {
   display: block;
   font-size: 0.8rem;
   font-weight: 800;
-  color: var(--text-sub);
+  color: var(--navy-slate);
   margin-bottom: 0.4rem;
 }
 
 .form-input, .form-select, .form-textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid var(--border-dark);
+  border: 1.5px solid #cbd5e1;
   border-radius: 12px;
   font-size: 0.9rem;
-  background: var(--bg-card);
-  color: #ffffff;
+  background: #ffffff;
+  color: var(--navy-dark);
   outline: none;
   transition: border-color 0.15s;
 }
@@ -502,17 +498,17 @@ body {
   border: none;
   cursor: pointer;
   font-size: 0.95rem;
-  box-shadow: 0 4px 18px rgba(225, 29, 72, 0.4);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
   transition: background 0.15s;
 }
 
 .btn-submit:hover {
-  background: var(--crimson-hover);
+  background: var(--crimson-dark);
 }
 
 .close-btn {
-  background: var(--bg-card);
-  border: 1px solid var(--border-dark);
+  background: var(--bg-page);
+  border: 1px solid var(--border-subtle);
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -521,21 +517,10 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--text-muted);
 }
 
 .close-btn:hover {
-  color: #ffffff;
-  border-color: #64748b;
-}
-
-/* Footer */
-.site-footer {
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-dark);
-  padding: 1.5rem 0;
-  margin-top: auto;
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--text-dim);
+  color: var(--navy-dark);
+  background: #e2e8f0;
 }
