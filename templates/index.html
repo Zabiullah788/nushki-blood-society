@@ -45,13 +45,20 @@
 
   <!-- Main Content -->
   <main class="main-wrapper">
+
+    {% if pledged_success %}
+      <div style="margin-bottom: 20px; padding: 14px 18px; border-radius: 14px; background: #ecfdf5; border: 1.5px solid #a7f3d0; color: #065f46; font-weight: 800; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center;">
+        <span>✓ Thank you! Your pledge to donate blood has been recorded on this emergency case.</span>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #059669;">✕</button>
+      </div>
+    {% endif %}
     
     <!-- 1. LIVE REQUESTS TAB -->
     {% if active_tab == 'requests' %}
       <div class="section-head">
         <div>
           <h2 class="section-title">Active Emergency Requests</h2>
-          <p class="section-desc">Urgent appeals. Volunteer donors can respond directly.</p>
+          <p class="section-desc">Urgent appeals. Volunteer donors can respond directly on the portal.</p>
         </div>
       </div>
 
@@ -69,24 +76,30 @@
               {% if r.notes %}
                 <p class="card-notes">"{{ r.notes }}"</p>
               {% endif %}
+
+              <!-- Responders Counter -->
+              <div style="margin-top: 10px; font-size: 0.8rem; font-weight: 800; color: #059669;">
+                {% if r.pledges_count > 0 %}
+                  🩸 {{ r.pledges_count }} Volunteer(s) responded to donate!
+                {% else %}
+                  <span style="color: #64748b;">No donor responded yet</span>
+                {% endif %}
+              </div>
             </div>
 
-            <!-- Donor Response CTA (Available to everyone) -->
+            <!-- On-Site Donor Response CTA -->
             <div style="margin-top: 14px;">
-              <a href="{{ r.donor_response_url }}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 0.875rem; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);">
+              <button type="button" onclick="openRespondModal('{{ r.id }}', '{{ r.patient_name }}', '{{ r.blood_group }}')" style="width: 100%; padding: 11px; background: linear-gradient(135deg, #e11d48, #be123c); color: #ffffff; border: none; border-radius: 12px; font-weight: 900; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px;">
                 🩸 I Want to Donate for This
-              </a>
+              </button>
             </div>
 
-            <!-- Attendant Contact Row -->
+            <!-- Attendant Phone -->
             <div class="card-footer" style="margin-top: 12px; padding-top: 10px;">
               <a href="tel:{{ r.contact_number }}" class="contact-link">📞 {{ r.contact_number }}</a>
-              {% if r.dispatches and r.dispatches|length > 0 %}
-                <a href="{{ r.dispatches[0].wa_url }}" target="_blank" class="btn-whatsapp">WhatsApp Alert</a>
-              {% endif %}
             </div>
 
-            <!-- ADMIN ONLY CONTROLS -->
+            <!-- Admin-Only Controls -->
             {% if is_admin %}
               <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; display: flex; gap: 8px;">
                 <form action="/requests/resolve" method="POST" style="flex: 1;">
@@ -183,6 +196,61 @@
   </main>
 
   <!-- ==================== POPUP MODALS ==================== -->
+
+  <!-- SMART DONOR RESPONSE MODAL (Direct on site) -->
+  <div id="respondModal" class="modal-layer">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-weight: 900; font-size: 1.25rem;">Respond to Emergency</h3>
+          <p id="respondSubhead" style="font-size: 0.8rem; color: var(--crimson); font-weight: 700; margin-top: 2px;"></p>
+        </div>
+        <button type="button" class="close-btn" onclick="toggleModal('respondModal', false)">✕</button>
+      </div>
+
+      <form action="/requests/respond" method="POST">
+        <input type="hidden" id="pledgeRequestId" name="request_id" value="">
+
+        <div class="form-group">
+          <label>Your Phone / WhatsApp Number *</label>
+          <input type="tel" id="pledgePhone" name="phone_number" class="form-input" required placeholder="0333..." oninput="checkDonorRegistration(this.value)">
+          <p id="donorCheckMsg" style="font-size: 0.75rem; font-weight: 700; margin-top: 4px; color: #64748b;"></p>
+        </div>
+
+        <!-- Auto-revealed only if donor is NOT registered -->
+        <div id="newDonorFields" style="display: none; border-top: 1px dashed #e2e8f0; padding-top: 12px; margin-top: 8px;">
+          <p style="font-size: 0.78rem; font-weight: 800; color: #0284c7; margin-bottom: 10px;">
+            ✨ First time donating? Enter your details once to join and pledge immediately:
+          </p>
+
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="pledgeName" name="full_name" class="form-input" placeholder="Your full name">
+          </div>
+
+          <div class="form-row form-group">
+            <div>
+              <label>Blood Group *</label>
+              <select id="pledgeGroup" name="blood_group" class="form-select">
+                <option value="A+">A+</option><option value="A-">A-</option>
+                <option value="B+">B+</option><option value="B-">B-</option>
+                <option value="O+">O+</option><option value="O-">O-</option>
+                <option value="AB+">AB+</option><option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div>
+              <label>Area in Nushki *</label>
+              <input type="text" id="pledgeArea" name="area_nushki" class="form-input" placeholder="e.g. Station Road">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" style="margin-top: 8px;">
+          Confirm My Blood Donation Pledge
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- Post Request Modal -->
   <div id="requestModal" class="modal-layer">
@@ -318,8 +386,51 @@
       }
     }
 
+    function openRespondModal(reqId, patientName, bloodGroup) {
+      document.getElementById('pledgeRequestId').value = reqId;
+      document.getElementById('respondSubhead').innerText = `For Patient ${patientName} (${bloodGroup})`;
+      document.getElementById('pledgePhone').value = '';
+      document.getElementById('donorCheckMsg').innerText = '';
+      document.getElementById('newDonorFields').style.display = 'none';
+      toggleModal('respondModal', true);
+    }
+
+    let searchTimer = null;
+    function checkDonorRegistration(phone) {
+      clearTimeout(searchTimer);
+      const msg = document.getElementById('donorCheckMsg');
+      const newFields = document.getElementById('newDonorFields');
+
+      if (!phone || phone.length < 8) {
+        msg.innerText = '';
+        newFields.style.display = 'none';
+        return;
+      }
+
+      msg.innerText = 'Checking directory...';
+
+      searchTimer = setTimeout(() => {
+        fetch(`/api/donor-lookup?phone=${encodeURIComponent(phone)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.found) {
+              msg.style.color = '#059669';
+              msg.innerText = `✓ Registered Donor: ${data.full_name} (${data.blood_group}) - ${data.status_msg}`;
+              newFields.style.display = 'none';
+            } else {
+              msg.style.color = '#0284c7';
+              msg.innerText = '● Number not registered yet. Please provide details below to register & pledge.';
+              newFields.style.display = 'block';
+            }
+          })
+          .catch(() => {
+            newFields.style.display = 'block';
+          });
+      }, 350);
+    }
+
     window.addEventListener('click', (e) => {
-      ['requestModal', 'donorModal', 'adminModal'].forEach(id => {
+      ['requestModal', 'donorModal', 'adminModal', 'respondModal'].forEach(id => {
         const el = document.getElementById(id);
         if (e.target === el) toggleModal(id, false);
       });
@@ -327,7 +438,7 @@
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        ['requestModal', 'donorModal', 'adminModal'].forEach(id => toggleModal(id, false));
+        ['requestModal', 'donorModal', 'adminModal', 'respondModal'].forEach(id => toggleModal(id, false));
       }
     });
   </script>
